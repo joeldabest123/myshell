@@ -4,13 +4,22 @@
 #include <string.h>
 #include <stdint.h>
 
-int main (int argc, char* argv[]) {
-    if(argc > 2 ) {
-        printf("Usage: %s <directory_path>\n", argv[0]);
-        return 1;
-    }
+#define BUFFER_SIZE 1024
 
-    if (argc == 1) {
-        //determines if read from std input or argument
+int main (int argc, char* argv[]) {
+    char buffer[BUFFER_SIZE];
+
+    while(1) {
+        write(STDOUT_FILENO, "$ ", 2); //for the prompt
+
+        ssize_t bytes = read(STDIN_FILENO, buffer, BUFFER_SIZE - 1);
+
+        if(bytes <= 0) break;
+
+        buffer[bytes] = '\0';
+
+        //Gotta process commands
     }
+    
+    return 0;
 }
