@@ -9,6 +9,11 @@
 int main (int argc, char* argv[]) {
     char buffer[BUFFER_SIZE];
 
+    int isInteractive = isatty(STDIN_FILENO);
+    if (interactive) {
+        printf("Welcome!\n");
+    }
+
     while(1) {
         write(STDOUT_FILENO, "$ ", 2); //for the prompt
 
@@ -21,5 +26,9 @@ int main (int argc, char* argv[]) {
         //Gotta process commands
     }
     
+    if (interactive) {
+        printf("Exiting...\n");
+    }
+
     return 0;
 }

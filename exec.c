@@ -3,8 +3,8 @@
 #include <sys/wait.h>
 #include <unistd.h>
 #include <fcntl.h>
+#include "structs.h"
 #include "exec.h"
-
 
 void run_pipeline(Pipeline* pipeline) {
     int num = pipeline->commandCount;
@@ -13,7 +13,13 @@ void run_pipeline(Pipeline* pipeline) {
     for(int i=0; i<num; i++) {
         //read and write data from pipe populating pipefd
         int pipefd[2];
-        if(i<num-1){pipe(pipefd);}
+        if(i<num-1){
+            int x = pipe(pipefd);
+            if (x<0) {
+                perror("pipe");
+                return;
+            }
+        }
 
         pid_t pid= fork(); //duplicate process
         if(pid==0){ //if in child process...
@@ -36,6 +42,8 @@ void run_pipeline(Pipeline* pipeline) {
             if(pipeline->commands[i].inputFile){
                 //new stdin file is fd of the inputFile for the command
                 int fd=open(pipeline->commands[i].inputFile, O_RDONLY);
+                
+                //add perror if fd<0
                 dup2(fd, STDIN_FILENO);
                 close(fd);
             }
@@ -43,7 +51,10 @@ void run_pipeline(Pipeline* pipeline) {
             //output redirection...
             if(pipeline->commands[i].inputFile){
                 //new stdin file is fd of the inputFile for the command
-                int fd=open(pipeline->commands[i].ouypuyFile, O_WRONLY | O_CREAT | O_TRUNC, 0640);
+                int fd=open(pipeline->commands[i].outputFile, O_WRONLY | O_CREAT | O_TRUNC, 0640);
+                
+                //add perror if fd<0
+
                 dup2(fd, STDIN_FILENO);
                 close(fd);
             }

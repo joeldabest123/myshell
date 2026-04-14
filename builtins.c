@@ -1,1 +1,16 @@
 
+#include <string.h>
+#include <unistd.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include "builtins.h"
+
+int handleBuiltins(Command* command) {
+    char** args = command->arguments;
+
+    //if first argument is NULL...
+    //if first argument is exit...
+    //if first argument is cd...
+    //if first argument is pwd...
+    //if first command is which...
+}
