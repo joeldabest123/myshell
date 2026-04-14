@@ -43,7 +43,11 @@ void run_pipeline(Pipeline* pipeline) {
                 //new stdin file is fd of the inputFile for the command
                 int fd=open(pipeline->commands[i].inputFile, O_RDONLY);
                 
-                //add perror if fd<0
+                if(fd<0) {
+                    perror("input");
+                    return;
+                }
+
                 dup2(fd, STDIN_FILENO);
                 close(fd);
             }
@@ -53,7 +57,10 @@ void run_pipeline(Pipeline* pipeline) {
                 //new stdin file is fd of the inputFile for the command
                 int fd=open(pipeline->commands[i].outputFile, O_WRONLY | O_CREAT | O_TRUNC, 0640);
                 
-                //add perror if fd<0
+                if(fd<0) {
+                    perror("output");
+                    return;
+                }
 
                 dup2(fd, STDIN_FILENO);
                 close(fd);
@@ -64,7 +71,7 @@ void run_pipeline(Pipeline* pipeline) {
             exit(1);
         }
 
-        //after pid==0 if statement, so now at parent
+        //after pid==0 if statement: so now at parent
         if (prev_fd!=-1) { //if there's a prev_fd, close it
             close(prev_fd);
         }
