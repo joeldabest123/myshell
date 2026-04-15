@@ -103,13 +103,17 @@ void run_pipeline(Pipeline* pipeline) {
             }
 
             char * path = find_exec(cmd);
-
-            if(path == NULL) {
+            if (!path) {
                 fprintf(stderr, "mysh: command not found: %s\n", cmd);
                 exit(1);
             }
 
             execv(path, pipeline->commands[i].arguments);
+
+            char * sh_args[] = {"sh",path,NULL};
+            execv("/bin/sh",sh_args);
+
+
             perror("execv"); //<-- should never execute
             free(path);
             _exit(1); //avoids flushing stdio buffers twice
