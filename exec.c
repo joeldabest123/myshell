@@ -1,10 +1,39 @@
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 #include <sys/wait.h>
 #include <unistd.h>
 #include <fcntl.h>
 #include "structs.h"
 #include "exec.h"
+
+//Used to search directories in order
+char* find_exec(char *command) {
+
+    if (!command) {
+        return NULL;
+    }
+
+    if (strchr(command, '/')) {
+        return strdup(command);
+    }
+
+    //used for searching the 3 required directories
+    const char *dirs[] = {"/usr/local/bin", "/usr/bin", "/bin"};
+    char path[1024];
+
+    //runs through em
+    for (int i = 0; i < 3; i++) {
+
+        snprintf(path, sizeof(path), "%s/%s", dirs[i], command);
+
+        if (access(path, X_OK) == 0) {
+            return strdup(path);
+        }
+    }
+
+    return NULL;
+}
 
 void run_pipeline(Pipeline* pipeline) {
     int num = pipeline->commandCount;
@@ -45,7 +74,7 @@ void run_pipeline(Pipeline* pipeline) {
                 
                 if(fd<0) {
                     perror("input");
-                    return;
+                    exit(1);
                 }
 
                 dup2(fd, STDIN_FILENO);
@@ -53,22 +82,37 @@ void run_pipeline(Pipeline* pipeline) {
             }
 
             //output redirection...
-            if(pipeline->commands[i].inputFile){
+            if(pipeline->commands[i].outputFile){
                 //new stdin file is fd of the inputFile for the command
-                int fd=open(pipeline->commands[i].outputFile, O_WRONLY | O_CREAT | O_TRUNC, 0640);
+                int fd = open(pipeline->commands[i].outputFile, O_WRONLY | O_CREAT | O_TRUNC, 0640);
                 
-                if(fd<0) {
+                if(fd < 0) {
                     perror("output");
-                    return;
+                    exit(1);
                 }
 
-                dup2(fd, STDIN_FILENO);
+                dup2(fd, STDOUT_FILENO);
                 close(fd);
             }
 
-            execv(pipeline->commands[i].arguments[0],pipeline->commands[i].arguments);
+            char *cmd= pipeline->commands[i].arguments[0];
+
+            if(!cmd) {
+                fprintf(stderr, "mysh: empty command\n");
+                exit(1);
+            }
+
+            char * path = find_exec(cmd);
+
+            if(path == NULL) {
+                fprintf(stderr, "mysh: command not found: %s\n", cmd);
+                exit(1);
+            }
+
+            execv(path, pipeline->commands[i].arguments);
             perror("execv"); //<-- should never execute
-            exit(1);
+            free(path);
+            _exit(1); //avoids flushing stdio buffers twice
         }
 
         //after pid==0 if statement: so now at parent

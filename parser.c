@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 #include "structs.h"
 
@@ -38,6 +39,13 @@ char** tokenizeLine(char * line, int* out_count) {
 
 }
 
+void free_pipeline(Pipeline *p) {
+    for(int i = 0; i < p->commandCount; i++) {
+        free(p->commands[i].arguments);
+    }
+    free(p->commands);
+}
+
 //we're building the pipelines from tokens
 void buildPipeline(char** tokens, Pipeline* pipeline) {
 
@@ -48,9 +56,6 @@ void buildPipeline(char** tokens, Pipeline* pipeline) {
 
     int commandIndex = 0;
     int argumentIndex = 0;
-
-    pipeline->commands = malloc(sizeof(Command) * 8);
-    pipeline->commandCount = 1;
 
     //initializing first command
     pipeline->commands[0].arguments = malloc(sizeof(char*) * 32);
@@ -89,12 +94,16 @@ void buildPipeline(char** tokens, Pipeline* pipeline) {
 
         //redirects output
         else if (strcmp(token, ">") == 0) {
-            pipeline->commands[commandIndex].outputFile = token[tokenIndex + 1];
+            pipeline->commands[commandIndex].outputFile = tokens[tokenIndex + 1];
             tokenIndex++;
         }
 
         //literally anything else :/
         else {
+            //for growing argument array if needed
+            if(argumentIndex >= 31) {
+                pipeline->commands[commandIndex].arguments = realloc(pipeline->commands[commandIndex].arguments, sizeof(char*) * 64);
+            }
             pipeline->commands[commandIndex].arguments[argumentIndex] = token;
             argumentIndex++;
         }

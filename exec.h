@@ -7,4 +7,6 @@
 void run_pipeline(Pipeline*);
 //path searching
 
+char* find_exec(char *);
+
 #endif

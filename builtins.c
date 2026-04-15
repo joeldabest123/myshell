@@ -28,7 +28,7 @@ int handleBuiltins(Command* command) {
     }
 
     if (strcmp(args[0], "pwd")==0) {
-        char cwd[1024];
+        char cwd[4096];
         getcwd(cwd, sizeof(cwd));
         printf("%s\n", cwd);
         return 1;

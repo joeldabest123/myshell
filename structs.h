@@ -2,9 +2,9 @@
 #define STRUCTS_H
 
 typedef struct {
-    char* **arguments;
-    char* *inputFile;
-    char* *outputFile;
+    char **arguments;
+    char *inputFile;
+    char *outputFile;
 } Command;
 
 typedef struct {

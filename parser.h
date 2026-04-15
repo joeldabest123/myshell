@@ -6,5 +6,6 @@
 
 char** tokenizeLine(char*, int*);
 void buildPipeline(char**, Pipeline*);
+void free_pipeline(Pipeline *);
 
 #endif

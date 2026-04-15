@@ -3,6 +3,10 @@
 #include <unistd.h>
 #include <string.h>
 #include <stdint.h>
+#include "parser.h"
+#include "builtins.h"
+#include "exec.h"
+#include "structs.h"
 
 #define BUFFER_SIZE 1024
 
@@ -10,7 +14,7 @@ int main (int argc, char* argv[]) {
     char buffer[BUFFER_SIZE];
 
     int isInteractive = isatty(STDIN_FILENO);
-    if (interactive) {
+    if (isInteractive) {
         printf("Welcome!\n");
     }
 
@@ -23,10 +27,27 @@ int main (int argc, char* argv[]) {
 
         buffer[bytes] = '\0';
 
-        //Gotta process commands
+        int count;
+        char** tokens = tokenizeLine(buffer, &count);
+
+        Pipeline pipeline;
+        buildPipeline(tokens, &pipeline);
+
+        int handled = 0;
+
+        if(pipeline.commandCount == 1) {
+            handled = handleBuiltins(&pipeline.commands[0]);
+        }
+            
+        if (!handled) {
+            run_pipeline(&pipeline);
+        }
+
+        free_pipeline(&pipeline);
+        free(tokens);
     }
     
-    if (interactive) {
+    if (isInteractive) {
         printf("Exiting...\n");
     }
 
