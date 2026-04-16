@@ -1,0 +1,1 @@
+cat < fakefile.txt
