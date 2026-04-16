@@ -142,7 +142,7 @@ void run_pipeline(Pipeline* pipeline, int isInteractive) {
         int status;
         wait(&status);
 
-        if(isatty(STDIN_FILENO)) {
+        if(isInteractive) {
             if(WIFEXITED(status)) {
                 int code = WEXITSTATUS(status);
                 if (code != 0) {
