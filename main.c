@@ -70,7 +70,7 @@ int main (int argc, char* argv[]) {
 
         printPrompt(isInteractive);
 
-        ssize_t bytes = readLine(STDIN_FILENO, buffer, BUFFER_SIZE);
+        ssize_t bytes = readLine(input_fd, buffer, BUFFER_SIZE);
 
         if(bytes <= 0) break;
 
@@ -96,7 +96,7 @@ int main (int argc, char* argv[]) {
         }
             
         if (!handled) {
-            run_pipeline(&pipeline);
+            run_pipeline(&pipeline, isInteractive);
         }
 
         free_pipeline(&pipeline);

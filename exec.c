@@ -36,7 +36,7 @@ char* find_exec(char *command) {
 }
 
 
-void run_pipeline(Pipeline* pipeline) {
+void run_pipeline(Pipeline* pipeline, int isInteractive) {
     int num = pipeline->commandCount;
     int prev_fd = -1;
 
@@ -96,7 +96,7 @@ void run_pipeline(Pipeline* pipeline) {
                 close(fd);
             }
 
-            if (i == 0 && !isatty(STDIN_FILENO) && pipeline->commands[i].inputFile == NULL && pipeline->commands[i].arguments[1] == NULL) {
+            if (!isInteractive && pipeline->commands[i].inputFile == NULL && prev_fd == -1) {
                 int fd = open("/dev/null", O_RDONLY);
                 dup2(fd, STDIN_FILENO);
                 close(fd);

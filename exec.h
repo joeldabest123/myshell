@@ -4,7 +4,7 @@
 #define EXEC_H
 
 
-void run_pipeline(Pipeline*);
+void run_pipeline(Pipeline*, int);
 //path searching
 
 char* find_exec(char *);
