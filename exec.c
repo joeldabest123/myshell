@@ -96,7 +96,7 @@ void run_pipeline(Pipeline* pipeline) {
                 close(fd);
             }
 
-            if (i == 0 && !isatty(STDIN_FILENO) && pipeline->commands[i].inputFile == NULL) {
+            if (i == 0 && !isatty(STDIN_FILENO) && pipeline->commands[i].inputFile == NULL && pipeline->commands[i].arguments[1] == NULL) {
                 int fd = open("/dev/null", O_RDONLY);
                 dup2(fd, STDIN_FILENO);
                 close(fd);
@@ -154,4 +154,6 @@ void run_pipeline(Pipeline* pipeline) {
             }
         }
     }
+
+    fflush(stdout);
 }
