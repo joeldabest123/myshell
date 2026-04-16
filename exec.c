@@ -96,8 +96,8 @@ void run_pipeline(Pipeline* pipeline) {
                 close(fd);
             }
 
-            if (!isatty(STDIN_FILENO)&&pipeline->commands[i].inputFile==NULL) {
-                int fd = open("/dev/null",O_RDONLY);
+            if (i == 0 && !isatty(STDIN_FILENO) && pipeline->commands[i].inputFile == NULL) {
+                int fd = open("/dev/null", O_RDONLY);
                 dup2(fd, STDIN_FILENO);
                 close(fd);
             }

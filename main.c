@@ -12,21 +12,17 @@
 #define BUFFER_SIZE 1024
 
 ssize_t readLine(int fd, char* buffer, size_t max) {
-    size_t i=0;
+    size_t i = 0;
     char c;
-    while (i<max-1) {
+    while (i < max - 1) {
         ssize_t num = read(fd, &c, 1);
-        if (num<=0) {
-            return num;
-        }
-
+        if (num < 0) return -1;
+        if (num == 0) return (i > 0) ? (ssize_t)i : 0; // EOF
         buffer[i++] = c;
-        if (c=='\n') {
-            break;
-        }
+        if (c == '\n') break;
     }
     buffer[i] = '\0';
-    return i;
+    return (ssize_t)i;
 }
 
 void printPrompt(int isInteractive) {
