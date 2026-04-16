@@ -2,8 +2,73 @@
 #include <stdlib.h>
 #include <string.h>
 #include "structs.h"
+#include <dirent.h>
 
 #define MAX_TOKENS 100
+
+int hasWildcard(char * str) {
+    return strchr(str,'*')!=NULL;
+}
+
+void expandWildcard(char * token, char*** args, int * argIndex){
+    
+    char* slash = strrchr(token, '/');
+    char dir[512] = ".";
+    char pattern[256];
+
+    if(slash){
+        int len = slash - token;
+        strncpy(dir, token, len);
+        dir[len] = '\0';
+        strcpy(pattern, slash + 1);
+    } 
+    
+    else {
+        strcpy(pattern, token);
+    }
+
+    
+    DIR * d = opendir(dir);
+    if(!d){
+        (*args)[(*argIndex)++] = token;
+        return;
+    }
+
+    struct dirent* entry;
+    int found=0;
+
+    while((entry=readdir(d))!=NULL) {
+        char* name = entry->d_name;
+        if (name[0] == '.' && pattern[0] != '.') continue;
+
+        char* star = strchr(pattern, '*');
+        int prefixLen = star - pattern;
+        int suffixLen = strlen(pattern) - prefixLen - 1;
+
+        if (strncmp(pattern, name, prefixLen) != 0) continue;
+        if (suffixLen > 0) {
+            if (strlen(name) < suffixLen) continue;
+            if (strcmp(name + strlen(name) - suffixLen,
+                       star + 1) != 0) continue;
+        }
+
+        found = 1;
+        char full[1024];
+        if (slash){
+            snprintf(full,sizeof(full),"%s/%s",dir,name);
+            (*args)[(*argIndex)++]=strdup(full);
+        } 
+        else {
+            (*args)[(*argIndex)++]=strdup(name);
+        }
+    }
+
+    closedir(d);
+
+    if (!found) {
+        (*args)[(*argIndex)++]=token;
+    }
+}
 
 //tokenizes the command line into an array and returns said array
 char** tokenizeLine(char * line, int* out_count) {
@@ -100,15 +165,13 @@ void buildPipeline(char** tokens, Pipeline* pipeline) {
 
         //literally anything else :/
         else {
-            //for growing argument array if needed
-            if(argumentIndex >= 31) {
-                pipeline->commands[commandIndex].arguments = realloc(pipeline->commands[commandIndex].arguments, sizeof(char*) * 64);
+            if (hasWildcard(token)) {
+                expandWildcard(token, &pipeline->commands[commandIndex].arguments,&argumentIndex);
+            } else {
+                pipeline->commands[commandIndex].arguments[argumentIndex++] = token;
             }
-            pipeline->commands[commandIndex].arguments[argumentIndex] = token;
-            argumentIndex++;
         }
     }
-
     //terminate last argument in argv so execv doesn't read into le garbage memory
     pipeline->commands[commandIndex].arguments[argumentIndex] = NULL;
 

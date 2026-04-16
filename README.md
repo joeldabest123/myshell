@@ -6,13 +6,9 @@ TESTING STRATEGY:
 blah blah blah
 
 Current errors:
--Change main to mysh so ./mysh works
--When typing single command, sometimes stops working loop (no path, just repeats)
 -Cat, grep and other unix commands don't work
--when trying to run .sh files, execv says improper permission is granted.
--Batch versus interactive modes? (Writeup implies isatty() to determine but also that batch when given no arguments. Interactive when start with arguments)
 -exit status msgs?
-
+-which
 
 
 Current Tests:

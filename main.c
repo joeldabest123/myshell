@@ -11,62 +11,70 @@
 
 #define BUFFER_SIZE 1024
 
-ssize_t readLine(int fd, char * buffer, size_t max){
-    size_t i = 0;
+ssize_t readLine(int fd, char* buffer, size_t max) {
+    size_t i=0;
     char c;
-
     while (i<max-1) {
-        ssize_t n = read(fd, &c, 1);
-        if (n <= 0) return n;
-        buffer[i++]=c;
-        if (c=='\n') break;
+        ssize_t num = read(fd, &c, 1);
+        if (num<=0) {
+            return num;
+        }
+
+        buffer[i++] = c;
+        if (c=='\n') {
+            break;
+        }
     }
     buffer[i] = '\0';
     return i;
 }
 
-void printPrompt(int isInteractive){
-    if(isInteractive){
+void printPrompt(int isInteractive) {
+    if (isInteractive) {
         char cwd[BUFFER_SIZE];
         char* home = getenv("HOME");
+
         getcwd(cwd, sizeof(cwd));
 
-        if (strncmp(cwd, home, strlen(home))==0) {
+        if (strncmp(cwd, home, strlen(home)) == 0) {
             printf("~%s$ ", cwd + strlen(home));
-        } 
-        else {
+        } else {
             printf("%s$ ", cwd);
         }
+
         fflush(stdout);
     }
-
-    else{
-        write(STDOUT_FILENO, "$ ", 2);
+    else {
+        printf("$ ");
+        fflush(stdout);
     }
 }
 
 int main (int argc, char* argv[]) {
     char buffer[BUFFER_SIZE];
 
-    int isInteractive = (argc==1 && isatty(STDIN_FILENO));
-    if (isInteractive) {
-        printf("Welcome!\n");
-    }
+    int isInteractive = (argc == 1 && isatty(STDIN_FILENO));
+    
+    int input_fd = STDIN_FILENO;
 
-    int fd_input = STDIN_FILENO;
     if (argc == 2) {
-        fd_input = open(argv[1], O_RDONLY);
-        if (fd_input < 0) {
+        input_fd = open(argv[1], O_RDONLY);
+        if (input_fd < 0) {
             perror("file");
             exit(1);
         }
     }
 
-    while(1) {
-        
-        printPrompt(isInteractive); //for the prompt
+    if (isInteractive) {
+        printf("Welcome!\n");
+    }
 
-        ssize_t bytes = readLine(fd_input, buffer, BUFFER_SIZE - 1);
+    while(1) {
+        //write(STDOUT_FILENO, "$ ", 2); //for the prompt
+
+        printPrompt(isInteractive);
+
+        ssize_t bytes = readLine(STDIN_FILENO, buffer, BUFFER_SIZE);
 
         if(bytes <= 0) break;
 
@@ -82,6 +90,13 @@ int main (int argc, char* argv[]) {
 
         if(pipeline.commandCount == 1) {
             handled = handleBuiltins(&pipeline.commands[0]);
+        
+            if (handled==2) {
+                free_pipeline(&pipeline);
+                free(tokens);
+                break;
+            }
+
         }
             
         if (!handled) {

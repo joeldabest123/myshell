@@ -35,6 +35,7 @@ char* find_exec(char *command) {
     return NULL;
 }
 
+
 void run_pipeline(Pipeline* pipeline) {
     int num = pipeline->commandCount;
     int prev_fd = -1;
@@ -95,6 +96,13 @@ void run_pipeline(Pipeline* pipeline) {
                 close(fd);
             }
 
+            if (!isatty(STDIN_FILENO)&&pipeline->commands[i].inputFile==NULL) {
+                int fd = open("/dev/null",O_RDONLY);
+                dup2(fd, STDIN_FILENO);
+                close(fd);
+            }
+
+
             char *cmd= pipeline->commands[i].arguments[0];
 
             if(!cmd) {
@@ -131,6 +139,19 @@ void run_pipeline(Pipeline* pipeline) {
     }
 
     for(int i=0; i<num; i++) { //wait for all children to terminate
-        wait(NULL);
+        int status;
+        wait(&status);
+
+        if(isatty(STDIN_FILENO)) {
+            if(WIFEXITED(status)) {
+                int code = WEXITSTATUS(status);
+                if (code != 0) {
+                    printf("Exited with status %d\n", code);
+                }
+            } else if (WIFSIGNALED(status)) {
+                printf("Terminated by signal %s\n",
+                    strsignal(WTERMSIG(status)));
+            }
+        }
     }
 }

@@ -13,7 +13,7 @@ int handleBuiltins(Command* command) {
     }
 
     if(strcmp(args[0], "exit")==0) {
-        exit(0);
+        return 2;
     }
 
     if (strcmp(args[0], "cd")==0) {
