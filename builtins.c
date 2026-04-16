@@ -43,13 +43,23 @@ int handleBuiltins(Command* command) {
         return 2;
     }
 
-    if (strcmp(args[0], "cd")==0) {
-        if (args[1]==NULL) { //no 2nd argument, return to home path
-            chdir(getenv("HOME"));
+    if (strcmp(args[0], "cd") == 0) {
+        char* dir = NULL;
+
+        if (args[1] == NULL) {
+            dir = getenv("HOME");
+        } else if (strcmp(args[1], "~") == 0) {
+            dir = getenv("HOME");
+        } else if (args[1][0] == '~' && args[1][1] == '/') {
+            static char expanded[4096];
+            snprintf(expanded, sizeof(expanded), "%s/%s", getenv("HOME"), args[1] + 2);
+            dir = expanded;
         } else {
-            if(chdir(args[1])!=0) {
-                perror("cd"); //if failed
-            }
+            dir = args[1];
+        }
+
+        if (chdir(dir) != 0) {
+            perror("cd");
         }
         return 1;
     }
